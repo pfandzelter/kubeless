@@ -37,14 +37,14 @@ install_bin() {
 check_or_build_nsenter() {
     which nsenter >/dev/null && return 0
     echo "INFO: Getting 'nsenter' ..."
-    curl -LO http://mirrors.kernel.org/ubuntu/pool/main/u/util-linux/util-linux_2.30.1-0ubuntu4_amd64.deb
-    dpkg -x ./util-linux_2.30.1-0ubuntu4_amd64.deb /tmp/out
+    curl -LO http://mirrors.kernel.org/ubuntu/pool/main/u/util-linux/util-linux_2.30.1-0ubuntu4_arm64.deb
+    dpkg -x ./util-linux_2.30.1-0ubuntu4_arm64.deb /tmp/out
     install_bin /tmp/out/usr/bin/nsenter
 }
 check_or_install_minikube() {
     which minikube || {
         wget -q --no-clobber -O minikube \
-            https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64
+            https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-arm64
         install_bin ./minikube
     }
 }

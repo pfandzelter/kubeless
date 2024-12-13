@@ -24,7 +24,7 @@ else
 fi
 
 if [ -z "$2" ]; then
-    OS_ARCH_ARG=(-arch="amd64")
+    OS_ARCH_ARG=(-arch="arm64")
 else
     OS_ARCH_ARG=($2)
 fi
