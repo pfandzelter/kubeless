@@ -206,7 +206,6 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
 1. Create a function, e.g., using Python3:
 
     ```sh
-
     cat <<EOF > kfunc.py
     def hello(event, context):
         print (event)
