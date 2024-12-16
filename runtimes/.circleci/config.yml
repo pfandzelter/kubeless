@@ -1,0 +1,82 @@
+version: 2
+
+## Definitions
+defaults: &defaults
+  environment:
+    MINIKUBE_VERSION: v1.2.0
+    GOPATH: /home/circleci/.go_workspace
+  machine:
+    image: ubuntu-1604:201903-01
+run_test: &run_test
+  steps:
+    - checkout
+    - run: echo "export GIT_SHA1=${CIRCLE_SHA1}" >> $BASH_ENV
+    - run: |
+        # Determine if running the tests are necessary
+        if [[ -n "$CIRCLE_PULL_REQUEST" ]]; then
+          # If the build is a pull request 
+          # and the runtime is not affected
+          # we omit the build
+          if ! git diff origin/master --name-only | grep ${CIRCLE_JOB}; then
+            circleci step halt
+          fi
+        fi
+    # go build creates files under /usr/local/go where the running user doesn't have permissions to write
+    - run: sudo chown -R circleci:circleci /usr/local/go/
+    - run: make bootstrap
+    - run: ./script/integration-tests.sh ${CIRCLE_JOB}
+#### End of definitions
+
+workflows:
+  version: 2
+  kubeless:
+    jobs:
+      - stable/ballerina
+      - stable/dotnetcore
+      - stable/golang
+      - stable/java
+      - stable/nodejs
+      - stable/php
+      - stable/python
+      - stable/ruby
+      - incubator/jvm
+      - incubator/nodejs_distroless
+      - incubator/nodejs_ce
+      - incubator/vertx
+jobs:
+  stable/ballerina:
+    <<: *defaults
+    <<: *run_test
+  stable/dotnetcore:
+    <<: *defaults
+    <<: *run_test
+  stable/golang:
+    <<: *defaults
+    <<: *run_test
+  stable/java:
+    <<: *defaults
+    <<: *run_test
+  stable/nodejs:
+    <<: *defaults
+    <<: *run_test
+  stable/php:
+    <<: *defaults
+    <<: *run_test
+  stable/python:
+    <<: *defaults
+    <<: *run_test
+  stable/ruby:
+    <<: *defaults
+    <<: *run_test
+  incubator/jvm:
+    <<: *defaults
+    <<: *run_test
+  incubator/nodejs_distroless:
+    <<: *defaults
+    <<: *run_test
+  incubator/nodejs_ce:
+    <<: *defaults
+    <<: *run_test
+  incubator/vertx:
+    <<: *defaults
+    <<: *run_test

@@ -28,9 +28,116 @@ You now have the binary `kubeless` build for Linux `arm64`.
 
 ### Containers
 
-```sh
-make bootstrap
-```
+1. We build our container images from a development container.
+    Build the container image (use a system that supports the `linux/arm64` platform, e.g., an `arm64` Linux machine or a Mac with Apple Silicon):
+
+    ```sh
+    docker build -f devel.Dockerfile -t kubeless-devel .
+    ```
+
+1. Start the development container and continue in there:
+
+    ```sh
+    docker run -it --rm \
+        -v $(pwd):/kubeless \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        kubeless-devel
+
+    cd /kubeless
+    ```
+
+1. Log in to your registry with `docker login`.
+
+1. Build the `function-controller` and `function-image-builder` images:
+
+    ```sh
+    # change these variables to fit your needs
+    export KUBELESS_IMAGE_REGISTRY=docker.io
+    export KUBELESS_IMAGE_REPOSITORY=pfandzelter
+    export KUBELESS_IMAGE_TAG=arm64
+    make bootstrap
+    make binary
+    make function-controller
+    make function-image-builder
+
+    # push the images
+    docker push $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-function-controller:$KUBELESS_IMAGE_TAG
+    docker push $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-function-image-builder:$KUBELESS_IMAGE_TAG
+    ```
+
+1. Build the `unzip` image:
+
+    ```sh
+    cd /kubeless/docker/unzip
+    docker build -t $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-unzip:$KUBELESS_IMAGE_TAG .
+    docker push $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-unzip:$KUBELESS_IMAGE_TAG
+    ```
+
+1. Build the `http-trigger` image:
+
+    ```sh
+    cd /kubeless/http-trigger
+    make bootstrap
+    make binary
+    make http-controller-image
+    docker push $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-http-trigger-controller:$KUBELESS_IMAGE_TAG
+    ```
+
+1. Build the `cronjob-trigger` image:
+
+    ```sh
+    cd /kubeless/cronjob-trigger
+    make bootstrap
+    make binary
+    make cronjob-controller-image
+    docker push $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-cronjob-trigger-controller:$KUBELESS_IMAGE_TAG
+    ```
+
+1. Build a runtime.
+    Here, we build the `python3` runtime.
+    We have simply added a new runtime using the existing ones as a template.
+
+    ```sh
+    cd /kubeless/runtimes/stable/python
+    docker build -t $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-python-3.8:$KUBELESS_IMAGE_TAG -f Dockerfile.3.8-arm64 .
+    docker push $KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-python-3.8:$KUBELESS_IMAGE_TAG
+    ```
+
+1. Build `kubeless` resource definition for Kubernetes.
+    In theory, you could use the `kubeless-non-rbac.jsonnet` template with `kubecfg`, but `kubecfg` is only available for `x86` so we would have to recompile it, which is boring and unnecessary.
+    Instead, we'll take the [`kubeless-non-rbac-v1.0.8.yaml`](https://github.com/vmware-archive/kubeless/releases/download/v1.0.8/kubeless-non-rbac-v1.0.8.yaml) from the official Kubeless release page and modify it.
+    We simply replace the existing images with our custom images:
+
+    ```sh
+    cd /kubeless
+    OLD_CONTROLLER=kubeless/function-controller:v1.0.8
+    OLD_BUILDER=kubeless/function-image-builder:v1.0.8
+    OLD_UNZIP=kubeless/unzip@sha256:e867f9b366ffb1a25f14baf83438db426ced4f7add56137b7300d32507229b5a
+    OLD_HTTP=kubeless/http-trigger-controller:v1.0.3
+    OLD_CRON=kubeless/cronjob-trigger-controller:v1.0.3
+
+    NEW_CONTROLLER=$KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-function-controller:$KUBELESS_IMAGE_TAG
+    NEW_BUILDER=$KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-function-image-builder:$KUBELESS_IMAGE_TAG
+    NEW_UNZIP=$KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-unzip:$KUBELESS_IMAGE_TAG
+    NEW_HTTP=$KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-http-trigger-controller:$KUBELESS_IMAGE_TAG
+    NEW_CRON=$KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-cronjob-trigger-controller:$KUBELESS_IMAGE_TAG
+
+    # you can also add your custom runtimes here
+    # note that we don't replace any other definitions -- other runtimes simply won't work
+    OLD_PYTHON38=kubeless/python@sha256:536eb97fda81d6e52bd947f771192077aa7b4f529fd0ca30e47561f94741963d
+    NEW_PYTHON38=$KUBELESS_IMAGE_REGISTRY/$KUBELESS_IMAGE_REPOSITORY/kubeless-python-3.8:$KUBELESS_IMAGE_TAG
+
+    KUBELESS_YAML=kubeless.yaml
+    cp kubeless-v1.0.8-template.yaml $KUBELESS_YAML
+    sed -i "s#${OLD_CONTROLLER}#${NEW_CONTROLLER}#g" $KUBELESS_YAML
+    sed -i "s#${OLD_BUILDER}#${NEW_BUILDER}#g" $KUBELESS_YAML
+    sed -i "s#${OLD_UNZIP}#${NEW_UNZIP}#g" $KUBELESS_YAML
+    sed -i "s#${OLD_HTTP}#${NEW_HTTP}#g" $KUBELESS_YAML
+    sed -i "s#${OLD_CRON}#${NEW_CRON}#g" $KUBELESS_YAML
+    sed -i "s#${OLD_PYTHON38}#${NEW_PYTHON38}#g" $KUBELESS_YAML
+    ```
+
+You are now ready to use `kubeless-non-rbac.yaml` in the subsequent steps!
 
 ## Deploying
 
@@ -68,13 +175,17 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
     pi3    Ready    control-plane,master   20s   v1.31.3+k3s1
     ```
 
-1. Install Kubeless on your cluster:
+    On our Raspberry Pi 3, this takes a few minutes because it is really slow.
+
+1. Install Kubeless on your cluster.
+    Use either our `kubeless-v1.0.8.yaml` or your custom `kubeless.yaml` from the steps before.
 
     ```sh
-    RELEASE=v1.0.8
     sudo k3s kubectl create ns kubeless
-    sudo k3s kubectl create -f https://github.com/kubeless/kubeless/releases/download/$RELEASE/kubeless-non-rbac-$RELEASE.yaml --validate=false
+    sudo k3s kubectl create -f ./kubeless-v1.0.8.yaml --validate=false
     ```
+
+    We skip validation as it requires too many resources.
 
     You can check that everything worked using the `kubectl get` commands:
 
@@ -88,7 +199,8 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
     Test it:
 
     ```sh
-    ./kubeless get-server-config
+    sudo ln /etc/rancher/k3s/k3s.yaml /root/.kube/config
+    sudo ./kubeless get-server-config
     ```
 
 1. Create a function, e.g., using Python3:
@@ -101,9 +213,36 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
         return event['data']
     EOF
 
-    kubeless function deploy hello --runtime python3.8 \
-                                --from-file test.py \
-                                --handler test.hello
+    sudo ./kubeless function deploy hello --runtime python3.8 \
+                                --from-file kfunc.py \
+                                --handler kfunc.hello
+    ```
+
+1. Try invoking the function:
+
+    ```sh
+    sudo ./kubeless function call hello --data "hi
+    ```
+
+1. Create an HTTP endpoint for the function:
+
+    ```sh
+    sudo ./kubeless trigger http create hello --gateway traefik --function-name hello
+    ```
+
+    This should now be visible in ingress:
+
+    ```sh
+    $ sudo k3s kubectl get ing
+    NAME    CLASS    HOSTS                    ADDRESS   PORTS   AGE
+    hello   <none>   hello.127.0.0.1.nip.io             80      11
+    ```
+
+    We need to edit the YAML to use Traefik (default for `k3s`) instead of `nginx`:
+
+    ```sh
+    sudo k3s kubectl edit ing hello
+    # replace nginx with traefik
     ```
 
 ---
@@ -114,7 +253,7 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
 [![Slack](https://img.shields.io/badge/slack-join%20chat%20%E2%86%92-e01563.svg)](http://slack.k8s.io)
 [![Not Maintained](https://img.shields.io/badge/Maintenance%20Level-Not%20Maintained-yellow.svg)](https://gist.github.com/cheerfulstoic/d107229326a01ff0f333a1d3476e068d)
 
-## WARNING: Kubeless is no longer actively maintained by VMware.
+## WARNING: Kubeless is no longer actively maintained by VMware
 
 VMware has made the difficult decision to stop driving this project and therefore we will no longer actively respond to issues or pull requests. If you would like to take over maintaining this project independently from VMware, please let us know so we can add a link to your forked project here.
 

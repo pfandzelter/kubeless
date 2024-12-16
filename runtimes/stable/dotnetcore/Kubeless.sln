@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kubeless.WebAPI", "src\Kubeless.WebAPI\Kubeless.WebAPI.csproj", "{762303F3-D5E7-4D2E-8770-3BD99AC557B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kubeless.Core", "src\Kubeless.Core\Kubeless.Core.csproj", "{3302AAC1-F26E-4839-904B-1E2A6F515061}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kubeless.Core.Tests", "src\Kubeless.Core.Tests\Kubeless.Core.Tests.csproj", "{CFD979AE-406B-4C1C-BD4F-E9065AA5AF39}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kubeless.Functions", "src\Kubeless.Functions\Kubeless.Functions.csproj", "{43FD8D4B-30FD-4F50-A604-085F7CE6303E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kubeless.WebAPI.Tests", "src\Kubeless.WebAPI.Tests\Kubeless.WebAPI.Tests.csproj", "{3A6F8EB0-F598-4A02-920D-48EAB8475179}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{34726F86-409F-4426-9451-BBCF7E715292}"
+	ProjectSection(SolutionItems) = preProject
+		examples\native-deps\native-deps.cs = examples\native-deps\native-deps.cs
+		examples\native-deps\native-deps.csproj = examples\native-deps\native-deps.csproj
+		examples\dependency-yaml\dependency-yaml.cs = examples\dependency-yaml\dependency-yaml.cs
+		examples\dependency-yaml\dependency-yaml.csproj = examples\dependency-yaml\dependency-yaml.csproj
+		examples\fibonacci\fibonacci.cs = examples\fibonacci\fibonacci.cs
+		examples\fibonacci\fibonacci.csproj = examples\fibonacci\fibonacci.csproj
+		examples\helloget\helloget.cs = examples\helloget\helloget.cs
+		examples\helloget\helloget.csproj = examples\helloget\helloget.csproj
+		examples\hellowithdata\hellowithdata.cs = examples\hellowithdata\hellowithdata.cs
+		examples\hellowithdata\hellowithdata.csproj = examples\hellowithdata\hellowithdata.csproj
+		examples\timeout\timeout.cs = examples\timeout\timeout.cs
+		examples\timeout\timeout.csproj = examples\timeout\timeout.csproj
+		examples\err\err.cs = examples\err\err.cs
+		examples\err\err.csproj = examples\err\err.csproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{CCBE6752-398A-4934-B276-9557032BF32E}"
+	ProjectSection(SolutionItems) = preProject
+		run-webapi.sh = run-webapi.sh
+		compile-function.sh = compile-function.sh
+		Dockerfile = Dockerfile
+		Dockerfile.init = Dockerfile.init
+		Dockerfile.3.1 = Dockerfile.3.1
+		Dockerfile.init.3.1 = Dockerfile.init.3.1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{061F4D26-FC00-4EDD-8395-33BE4B70C3F6}"
+ProjectSection(SolutionItems) = preProject
+	Makefile = Makefile
+	dotnetcore.jsonnet = dotnetcore.jsonnet
+	OWNERS = OWNERS
+EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{762303F3-D5E7-4D2E-8770-3BD99AC557B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{762303F3-D5E7-4D2E-8770-3BD99AC557B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{762303F3-D5E7-4D2E-8770-3BD99AC557B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{762303F3-D5E7-4D2E-8770-3BD99AC557B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3302AAC1-F26E-4839-904B-1E2A6F515061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3302AAC1-F26E-4839-904B-1E2A6F515061}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3302AAC1-F26E-4839-904B-1E2A6F515061}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3302AAC1-F26E-4839-904B-1E2A6F515061}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFD979AE-406B-4C1C-BD4F-E9065AA5AF39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFD979AE-406B-4C1C-BD4F-E9065AA5AF39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFD979AE-406B-4C1C-BD4F-E9065AA5AF39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFD979AE-406B-4C1C-BD4F-E9065AA5AF39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43FD8D4B-30FD-4F50-A604-085F7CE6303E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43FD8D4B-30FD-4F50-A604-085F7CE6303E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43FD8D4B-30FD-4F50-A604-085F7CE6303E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43FD8D4B-30FD-4F50-A604-085F7CE6303E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A6F8EB0-F598-4A02-920D-48EAB8475179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A6F8EB0-F598-4A02-920D-48EAB8475179}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A6F8EB0-F598-4A02-920D-48EAB8475179}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A6F8EB0-F598-4A02-920D-48EAB8475179}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0D5EC2A7-DB31-43AD-91D3-90AF05ACF281}
+	EndGlobalSection
+EndGlobal
