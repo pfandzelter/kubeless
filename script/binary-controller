@@ -41,10 +41,6 @@ else
     PKG=($4)
 fi
 
-
-GIT_COMMIT=$(git describe --tags --dirty)
-BUILD_FLAGS=(-ldflags="-w -X github.com/kubeless/kubeless/pkg/version.Version=${GIT_COMMIT}")
-
 # Get rid of existing binaries
 rm -rf bundles/kubeless*
 

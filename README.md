@@ -24,7 +24,7 @@ cd /kubeless
 go build -o kubeless ./cmd/kubeless
 ```
 
-You now have the binary `kubeless` build for Linux `arm64`.
+You now have the binary `kubeless` built for Linux `arm64`.
 
 ### Containers
 
