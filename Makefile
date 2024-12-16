@@ -48,7 +48,7 @@ docker/function-controller: controller-build
 	cp $(BUNDLES)/kubeless_$(OS)-$(ARCH)/kubeless-function-controller $@
 
 controller-build:
-	./script/binary-controller -os=$(OS) -arch=$(ARCH)
+	./script/binary-controller $(OS) $(ARCH)
 
 function-controller: docker/function-controller
 	$(DOCKER) build -t $(CONTROLLER_IMAGE) $<
@@ -57,7 +57,7 @@ docker/function-image-builder: function-image-builder-build
 	cp $(BUNDLES)/kubeless_$(OS)-$(ARCH)/imbuilder $@
 
 function-image-builder-build:
-	./script/binary-controller -os=$(OS) -arch=$(ARCH) imbuilder github.com/kubeless/kubeless/pkg/function-image-builder
+	./script/binary-controller $(OS) $(ARCH) imbuilder github.com/kubeless/kubeless/pkg/function-image-builder
 
 function-image-builder: docker/function-image-builder
 	$(DOCKER) build -t $(FUNCTION_IMAGE_BUILDER) $<

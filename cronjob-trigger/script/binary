@@ -16,18 +16,9 @@
 
 set -e
 
-
-GIT_COMMIT=$(git describe --tags --dirty --always)
-BUILD_FLAGS=(-ldflags="-w -X github.com/kubeless/cronjob-trigger/pkg/version.Version=${GIT_COMMIT}" -mod=vendor)
-
-# Get rid of existing binary
-echo "Removing Old Kubeless binaries"
-rm -f ${GOPATH%%:*}/bin/cronjob-trigger-controller
-
 echo "Build Kubeless Components binaries"
 # Build binary
 go install \
-    "${BUILD_FLAGS[@]}" \
     github.com/kubeless/cronjob-trigger/cmd/...
 
 if [ $? -eq 0 ]; then

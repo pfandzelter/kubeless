@@ -16,18 +16,8 @@
 
 set -e
 
-if [ -z "$1" ]; then
-#    TODO: Skip windows at this moment
-    OS_PLATFORM_ARG=(-os="linux")
-else
-    OS_PLATFORM_ARG=($1)
-fi
-
-if [ -z "$2" ]; then
-    OS_ARCH_ARG=(-arch="arm64")
-else
-    OS_ARCH_ARG=($2)
-fi
+OS_PLATFORM=${OS_PLATFORM_ARG:-linux}
+OS_ARCH=${OS_ARCH_ARG:-arm64}
 
 if [ -z "$3" ]; then
     TARGET="kubeless-function-controller"
@@ -41,11 +31,7 @@ else
     PKG=($4)
 fi
 
-# Get rid of existing binaries
-rm -rf bundles/kubeless*
-
 # Build kubeless-controller
-gox "${OS_PLATFORM_ARG[@]}" "${OS_ARCH_ARG[@]}" \
-    -output="bundles/kubeless_{{.OS}}-{{.Arch}}/$TARGET" \
-    "${BUILD_FLAGS[@]}" \
+GOOS=$OS_PLATFORM GOARCH=$OS_ARCH go build \
+    -o="bundles/kubeless_${OS_PLATFORM}-${OS_ARCH}/$TARGET" \
     "$PKG"

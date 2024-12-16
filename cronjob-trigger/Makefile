@@ -3,10 +3,12 @@ GO_FLAGS =
 GOFMT = gofmt
 KUBECFG = kubecfg
 DOCKER = docker
-CONTROLLER_IMAGE = kubeless-controller-manager:latest
-CRONJOB_CONTROLLER_IMAGE = cronjob-trigger-controller:latest
+KUBELESS_IMAGE_REGISTRY ?= docker.io
+KUBELESS_IMAGE_REPOSITORY ?= kubeless
+KUBELESS_IMAGE_TAG ?= latest
+CRONJOB_CONTROLLER_IMAGE = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/cronjob-trigger-controller:$(KUBELESS_IMAGE_TAG)
 OS = linux
-ARCH = amd64
+ARCH = arm64
 BUNDLES = bundles
 GO_PACKAGES = ./cmd/... ./pkg/...
 GO_FILES := $(shell find $(shell $(GO) list -f '{{.Dir}}' $(GO_PACKAGES)) -name \*.go)
@@ -22,7 +24,7 @@ binary:
 	CGO_ENABLED=1 ./script/binary
 
 cronjob-controller-build:
-	./script/binary-controller -os=$(OS) -arch=$(ARCH) cronjob-controller github.com/kubeless/cronjob-trigger/cmd/cronjob-trigger-controller
+	./script/binary-controller $(OS) $(ARCH) cronjob-controller github.com/kubeless/cronjob-trigger/cmd/cronjob-trigger-controller
 
 cronjob-controller-image: docker/cronjob-controller
 	$(DOCKER) build -t $(CRONJOB_CONTROLLER_IMAGE) $<
@@ -56,16 +58,3 @@ ksonnet-lib:
 
 .PHONY: bootstrap
 bootstrap: bats ksonnet-lib
-
-	go get github.com/mitchellh/gox
-
-	@if ! which kubecfg >/dev/null; then \
-	sudo wget -q -O /usr/local/bin/kubecfg https://github.com/ksonnet/kubecfg/releases/download/v0.9.0/kubecfg-$$(go env GOOS)-$$(go env GOARCH); \
-	sudo chmod +x /usr/local/bin/kubecfg; \
-	fi
-
-	@if ! which kubectl >/dev/null; then \
-	KUBECTL_VERSION=$$(wget -qO- https://storage.googleapis.com/kubernetes-release/release/stable.txt); \
-	sudo wget -q -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$$KUBECTL_VERSION/bin/$$(go env GOOS)/$$(go env GOARCH)/kubectl; \
-	sudo chmod +x /usr/local/bin/kubectl; \
-	fi
