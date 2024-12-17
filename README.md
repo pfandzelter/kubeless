@@ -156,7 +156,8 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
     sudo dphys-swapfile uninstall
     sudo update-rc.d dphys-swapfile remove
     sudo apt purge dphys-swapfile -y
-    sudo sysctl -w vm.swappiness=0
+    echo "vm.swappiness = 0" | sudo tee -a /etc/sysctl.conf
+    sudo sysctl -p
     ```
 
 1. Install Kubernetes (we use `k3s`) with version `<1.22`:
@@ -182,7 +183,7 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
 
     ```sh
     sudo k3s kubectl create ns kubeless
-    sudo k3s kubectl create -f ./kubeless-v1.0.8.yaml --validate=false
+    sudo k3s kubectl create -f ./kubeless.yaml --validate=false
     ```
 
     We skip validation as it requires too many resources.
@@ -217,16 +218,25 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
                                 --handler kfunc.hello
     ```
 
+    You can check that the function exists:
+
+    ```sh
+    sudo ./kubeless function ls hello
+    ```
+
 1. Try invoking the function:
 
     ```sh
-    sudo ./kubeless function call hello --data "hi
+    sudo ./kubeless function call hello --data "hi"
     ```
 
 1. Create an HTTP endpoint for the function:
 
     ```sh
-    sudo ./kubeless trigger http create hello --gateway traefik --function-name hello
+    sudo ./kubeless trigger http create hello \
+        --hostname localhost \
+        --gateway traefik \
+        --function-name hello
     ```
 
     This should now be visible in ingress:
@@ -237,7 +247,13 @@ We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
     hello   <none>   hello.127.0.0.1.nip.io             80      11
     ```
 
-    We need to edit the YAML to use Traefik (default for `k3s`) instead of `nginx`:
+    And we can invoke the function with `curl`:
+
+    ```sh
+    curl --data "hi\n" http://localhost/hello
+    ```
+
+    We need to edit the YAML to use Traefik (default for `k3s`) instead of `nginx` if we do not pass the `--gateway traefik` option:
 
     ```sh
     sudo k3s kubectl edit ing hello
