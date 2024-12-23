@@ -142,6 +142,9 @@ You are now ready to use `kubeless-non-rbac.yaml` in the subsequent steps!
 ## Deploying
 
 We assume a Raspberry Pi 3/4 with Raspberry Pi OS.
+We use `k3s` as our Kubernetes distribution, but you can use another one.
+For example, you may follow the [instructions for installing MicroK8s](https://ubuntu.com/tutorials/how-to-kubernetes-cluster-on-raspberry-pi) (be sure to select version `1.21`!)
+or the [instructions to install minikube](https://minikube.sigs.k8s.io/docs/start).
 
 1. Enable the memory `cgroup` by adding the following line at the end of `/boot/firmware/cmdline.txt`:
 
