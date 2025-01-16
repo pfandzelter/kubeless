@@ -1,3 +1,6 @@
+kubeless.bin
+kubeless-amd64.bin
+
 ### Go ###
 # Binaries for programs and plugins
 *.exe

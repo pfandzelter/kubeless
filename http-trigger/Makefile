@@ -6,9 +6,9 @@ DOCKER = docker
 KUBELESS_IMAGE_REGISTRY ?= docker.io
 KUBELESS_IMAGE_REPOSITORY ?= kubeless
 KUBELESS_IMAGE_TAG ?= latest
-HTTP_CONTROLLER_IMAGE = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/http-trigger-controller:$(KUBELESS_IMAGE_TAG)
+HTTP_CONTROLLER_IMAGE = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/kubeless-http-trigger-controller:$(KUBELESS_IMAGE_TAG)
 OS = linux
-ARCH = arm64
+ARCH ?= arm64
 BUNDLES = bundles
 GO_PACKAGES = ./cmd/... ./pkg/...
 GO_FILES := $(shell find $(shell $(GO) list -f '{{.Dir}}' $(GO_PACKAGES)) -name \*.go)
@@ -31,7 +31,7 @@ http-controller-build:
 	./script/binary-controller $(OS) $(ARCH) http-controller ./cmd/http-trigger-controller
 
 http-controller-image: docker/http-controller
-	$(DOCKER) build -t $(HTTP_CONTROLLER_IMAGE) $<
+	$(DOCKER) build --platform ${OS}/${ARCH} -t $(HTTP_CONTROLLER_IMAGE) $<
 
 docker/http-controller: http-controller-build
 	cp $(BUNDLES)/kubeless_$(OS)-$(ARCH)/http-controller $@

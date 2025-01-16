@@ -21,7 +21,7 @@ docker run --platform linux/arm64 -it --rm \
 
 # now inside the container
 cd /kubeless
-go build -o kubeless ./cmd/kubeless
+go build -o kubeless.bin ./cmd/kubeless
 ```
 
 You now have the binary `kubeless` built for Linux `arm64`.
@@ -199,12 +199,12 @@ or the [instructions to install minikube](https://minikube.sigs.k8s.io/docs/star
     sudo k3s kubectl get customresourcedefinition
     ```
 
-1. Copy the `kubeless` CLI (built earlier) to your device.
+1. Copy the `kubeless.bin` CLI (built earlier) to your device.
     Test it:
 
     ```sh
     sudo ln /etc/rancher/k3s/k3s.yaml /root/.kube/config
-    sudo ./kubeless get-server-config
+    sudo ./kubeless.bin get-server-config
     ```
 
 1. Create a function, e.g., using Python3:
@@ -216,7 +216,7 @@ or the [instructions to install minikube](https://minikube.sigs.k8s.io/docs/star
         return event['data']
     EOF
 
-    sudo ./kubeless function deploy hello --runtime python3.8 \
+    sudo ./kubeless.bin function deploy hello --runtime python3.8 \
                                 --from-file kfunc.py \
                                 --handler kfunc.hello
     ```
@@ -224,19 +224,19 @@ or the [instructions to install minikube](https://minikube.sigs.k8s.io/docs/star
     You can check that the function exists:
 
     ```sh
-    sudo ./kubeless function ls hello
+    sudo ./kubeless.bin function ls hello
     ```
 
 1. Try invoking the function:
 
     ```sh
-    sudo ./kubeless function call hello --data "hi"
+    sudo ./kubeless.bin function call hello --data "hi"
     ```
 
 1. Create an HTTP endpoint for the function:
 
     ```sh
-    sudo ./kubeless trigger http create hello \
+    sudo ./kubeless.bin trigger http create hello \
         --hostname localhost \
         --gateway traefik \
         --function-name hello
@@ -261,6 +261,57 @@ or the [instructions to install minikube](https://minikube.sigs.k8s.io/docs/star
     ```sh
     sudo k3s kubectl edit ing hello
     # replace nginx with traefik
+    ```
+
+1. If you would like your function to be accessible from other hosts, specify a hostname:
+
+    ```sh
+    sudo ./kubeless.bin trigger http create hello \
+        --hostname hello.example.com \
+        --gateway traefik \
+        --function-name hello
+    ```
+
+    Then use that hostname in your requests:
+
+    ```sh
+    curl --header "Host: hello.example.com" http://<SERVER_IP>/hello
+    ```
+
+1. Finally, you may specify an autoscaling policy (by default, Kubeless does not scale function instances).
+    There is, in theory, a `qps`-based autoscaler that scales functions based on the number of requests per second.
+    In our testing, this did not seem to work properly.
+    Instead, we can only use the `cpu`-based autoscaler that scales a function when it has CPU pressure.
+    You must create the function with a CPU limit for this to work:
+
+    ```sh
+    sudo ./kubeless.bin function deploy hello --runtime python3.8 \
+                                --from-file kfunc.py \
+                                --handler kfunc.hello \
+                                --cpu 1000m
+    ```
+
+    This specifies that the function has access to 1,000 millicpu, or 1CPU.
+    See [the meaning of `cpu` in Kubernetes](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu) for more information.
+    Of course, make sure your host has enough CPU resources.
+
+    Next, we can create an autoscaling policy in Kubeless:
+
+    ```sh
+    sudo ./kubeless.bin autoscale create hello \
+        --min 1 \
+        --max 48 \
+        --metric cpu \
+        --value 80
+    ```
+
+    This policy for the `hello` function specifies a minimum of one replica and a maximum of 48 replicas.
+    Additional replicas are spawned when a pod CPU percentage rises above 80%.
+
+    You can read the corresponding autoscaling policy in Kubernetes:
+
+    ```sh
+    sudo k3s kubectl get hpa
     ```
 
 ---

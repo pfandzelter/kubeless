@@ -16,8 +16,8 @@
 
 set -e
 
-OS_PLATFORM=${OS_PLATFORM_ARG:-linux}
-OS_ARCH=${OS_ARCH_ARG:-arm64}
+OS_PLATFORM=${1:-linux}
+OS_ARCH=${2:-arm64}
 
 if [ -z "$3" ]; then
     TARGET="kubeless-function-controller"

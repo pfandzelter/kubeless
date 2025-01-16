@@ -6,9 +6,9 @@ DOCKER = docker
 KUBELESS_IMAGE_REGISTRY ?= docker.io
 KUBELESS_IMAGE_REPOSITORY ?= kubeless
 KUBELESS_IMAGE_TAG ?= latest
-CRONJOB_CONTROLLER_IMAGE = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/cronjob-trigger-controller:$(KUBELESS_IMAGE_TAG)
+CRONJOB_CONTROLLER_IMAGE = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/kubeless-cronjob-trigger-controller:$(KUBELESS_IMAGE_TAG)
 OS = linux
-ARCH = arm64
+ARCH ?= arm64
 BUNDLES = bundles
 GO_PACKAGES = ./cmd/... ./pkg/...
 GO_FILES := $(shell find $(shell $(GO) list -f '{{.Dir}}' $(GO_PACKAGES)) -name \*.go)
@@ -27,7 +27,7 @@ cronjob-controller-build:
 	./script/binary-controller $(OS) $(ARCH) cronjob-controller github.com/kubeless/cronjob-trigger/cmd/cronjob-trigger-controller
 
 cronjob-controller-image: docker/cronjob-controller
-	$(DOCKER) build -t $(CRONJOB_CONTROLLER_IMAGE) $<
+	$(DOCKER) build --platform ${OS}/${ARCH} -t $(CRONJOB_CONTROLLER_IMAGE) $<
 
 docker/cronjob-controller: cronjob-controller-build
 	cp $(BUNDLES)/kubeless_$(OS)-$(ARCH)/cronjob-controller $@

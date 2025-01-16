@@ -9,7 +9,7 @@ KUBELESS_IMAGE_TAG ?= latest
 CONTROLLER_IMAGE = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/kubeless-function-controller:$(KUBELESS_IMAGE_TAG)
 FUNCTION_IMAGE_BUILDER = $(KUBELESS_IMAGE_REGISTRY)/$(KUBELESS_IMAGE_REPOSITORY)/kubeless-function-image-builder:$(KUBELESS_IMAGE_TAG)
 OS = linux
-ARCH = arm64
+ARCH ?= arm64
 BUNDLES = bundles
 GO_PACKAGES = ./cmd/... ./pkg/...
 GO_FILES := $(shell find $(shell $(GO) list -f '{{.Dir}}' $(GO_PACKAGES)) -name \*.go)
@@ -51,7 +51,7 @@ controller-build:
 	./script/binary-controller $(OS) $(ARCH)
 
 function-controller: docker/function-controller
-	$(DOCKER) build -t $(CONTROLLER_IMAGE) $<
+	$(DOCKER) build --platform ${OS}/${ARCH} -t $(CONTROLLER_IMAGE) $<
 
 docker/function-image-builder: function-image-builder-build
 	cp $(BUNDLES)/kubeless_$(OS)-$(ARCH)/imbuilder $@
@@ -60,7 +60,7 @@ function-image-builder-build:
 	./script/binary-controller $(OS) $(ARCH) imbuilder github.com/kubeless/kubeless/pkg/function-image-builder
 
 function-image-builder: docker/function-image-builder
-	$(DOCKER) build -t $(FUNCTION_IMAGE_BUILDER) $<
+	$(DOCKER) build --platform ${OS}/${ARCH} -t $(FUNCTION_IMAGE_BUILDER) $<
 
 update:
 	./hack/update-codegen.sh
